@@ -1,82 +1,91 @@
-const cells = document.querySelectorAll('.cell')
-let board = ['', '', '', '', '', '', '', '', '']
-let currentPlayer = 'X'
-let gameActive = true
+class Game{
+    constructor() {
+        this.board = ['', '', '', '', '', '', '', '', '']
+        this.currentPlayer = 'X'
+        this.gameActive = true
+    }
 
-document.querySelector('#restart').addEventListener('click', resetGame)
+    switchPlayer(){
+        this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X'
+        document.querySelector('#status').innerText = `Player ${this.currentPlayer}'s turn`
+    }
 
-for (const cell of cells) {
-    cell.addEventListener('click', markCell)
-}
+    resetGame(){
+        this.board = ['', '', '', '', '', '', '', '', '']
+        this.currentPlayer = 'X'
+        this.gameActive = true
 
-function markCell() {
-    if (!gameActive){
-        return 
+        for (const cell of cells){
+            cell.innerText = ''
+        }
+
+        document.querySelector('#status').innerText = 'Player X\'s turn'
     }
     
-    if (this.innerText !== ''){
-        return 
-    }
+    checkWinner(){
+        const winningCombinations = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ]
 
-    const index = this.dataset.index
+        for  (const combination of winningCombinations){
+            const [a, b, c] = combination
+            if (this.board[a] !== '' &&
+                this.board[a] === this.board[b] &&
+                this.board[a] === this.board[c]
+            ) {
+                document.querySelector('#status').innerText = `Player ${this.currentPlayer} wins!`
+                this.gameActive = false
+                return true
 
-    this.innerText = currentPlayer
-    board[index] = currentPlayer
-
-    const gameOver = checkWinner()
-    if (gameOver){
-        return 
-    }
-    switchPlayer()
-}
-
-function checkWinner(){
-    const winningCombinations = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ]
-
-    for  (const combination of winningCombinations){
-        const [a, b, c] = combination
-        if (board[a] !== '' &&
-            board[a] === board[b] &&
-            board[a] === board[c]
-        ) {
-            document.querySelector('#status').innerText = `Player ${currentPlayer} wins!`
-            gameActive = false
-            return true
-
+            }
         }
-    }
-    if (!board.includes('')){
-        document.querySelector('#status').innerText = `DRAW!!!`
-        gameActive = false
-        return true
-    }
-    return false
-}
-
-function switchPlayer(){
-    currentPlayer = currentPlayer === 'X' ? 'O' : 'X'
-    document.querySelector('#status').innerText = `Player ${currentPlayer}'s turn`
-}
-
-function resetGame(){
-    board = ['', '', '', '', '', '', '', '', '']
-    currentPlayer = 'X'
-    gameActive = true
-
-    for (const cell of cells){
-        cell.innerText = ''
+        if (!this.board.includes('')){
+            document.querySelector('#status').innerText = `DRAW!!!`
+            this.gameActive = false
+            return true
+        }
+        return false
     }
 
-    document.querySelector('#status').innerText = `Player X's turn`
+    markCell(cell) {
+        if (!this.gameActive){
+            return 
+        }
+        
+        if (cell.innerText !== ''){
+            return 
+        }
+
+        const index = cell.dataset.index
+
+        cell.innerText = this.currentPlayer
+        this.board[index] = this.currentPlayer
+
+        const gameOver = this.checkWinner()
+        if (gameOver){
+            return 
+        }
+        this.switchPlayer()
+    }
 }
 
+const cells = document.querySelectorAll('.cell')
 
+const game = new Game()
+
+document.querySelector('#restart').addEventListener('click', () => {
+    game.resetGame()
+})
+
+for (const cell of cells) {
+    cell.addEventListener('click', () => {
+        game.markCell(cell)
+    })
+}
